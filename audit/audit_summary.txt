@@ -1,0 +1,24 @@
+======================================================================
+IDDA STORAGE GOVERNOR - AUDIT SUMMARY
+======================================================================
+Audit events:            68967
+EXECUTE decisions:       3919
+SKIP decisions:          50940
+HOLD decisions:          14108
+----------------------------------------------------------------------
+Raw mutations seen:      65048
+Semantic mutations:      14108
+Semantic skips:          50940
+----------------------------------------------------------------------
+Semantic skip ratio:     78.31%
+Semantic execute ratio:  21.69%
+Estimated bytes saved:   154.93 MB
+Commit footprint:        1.31 MB
+Committed files:         500
+----------------------------------------------------------------------
+Trajectory classes:
+  UNKNOWN: 3919
+  NORMAL: 31609
+  TRANSIENT: 33365
+  WARNING: 74
+======================================================================
