@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>IDDA Storage Governor — Public Dashboard</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Inter,Arial,sans-serif;
+  background:#0b1020;
+  color:#e8eefc;
+}
+
+header{
+  padding:28px 40px;
+  background:linear-gradient(135deg,#101a35,#172554);
+  border-bottom:1px solid #25345f;
+}
+
+h1{
+  margin:0;
+  font-size:30px;
+}
+
+.subtitle{
+  color:#aebbe0;
+  margin-top:8px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:16px;
+  padding:24px 40px;
+}
+
+.card{
+  background:#111827;
+  border:1px solid #26324f;
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+
+.label{
+  color:#94a3b8;
+  font-size:13px;
+}
+
+.value{
+  font-size:28px;
+  font-weight:700;
+  margin-top:6px;
+}
+
+.main{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  gap:20px;
+  padding:0 40px 40px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid #25304a;
+  text-align:left;
+}
+
+th{
+  color:#aebbe0;
+}
+
+.pill{
+  padding:4px 9px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.normal{
+  background:#064e3b;
+  color:#a7f3d0;
+}
+
+.transient{
+  background:#713f12;
+  color:#fde68a;
+}
+
+.warning{
+  background:#7f1d1d;
+  color:#fecaca;
+}
+
+.execute{
+  color:#86efac;
+}
+
+.skip{
+  color:#facc15;
+}
+
+.hold{
+  color:#93c5fd;
+}
+
+.log{
+  height:430px;
+  overflow:hidden;
+  font-family:Consolas,monospace;
+  font-size:13px;
+  line-height:1.6;
+  color:#cbd5e1;
+}
+
+.bar{
+  height:14px;
+  border-radius:999px;
+  background:#1f2937;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.bar span{
+  display:block;
+  height:100%;
+  width:78%;
+  background:linear-gradient(90deg,#38bdf8,#22c55e);
+}
+
+footer{
+  color:#64748b;
+  padding:0 40px 28px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>IDDA Storage Governor</h1>
+
+  <div class="subtitle">
+    Public dashboard preview — trajectory governance for noisy telemetry streams.
+  </div>
+</header>
+
+<section class="grid">
+
+  <div class="card">
+    <div class="label">Input stream</div>
+    <div class="value">1.00 GB</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Stable footprint</div>
+    <div class="value">1.31 MB</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Suppression ratio</div>
+    <div class="value">78.31%</div>
+
+    <div class="bar">
+      <span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Committed objects</div>
+    <div class="value">500</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Audit events</div>
+    <div class="value">68,967</div>
+  </div>
+
+</section>
+
+<section class="main">
+
+  <div class="card">
+
+    <h2>Trajectory Decisions</h2>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Trajectory</th>
+          <th>Class</th>
+          <th>Raw</th>
+          <th>Accepted</th>
+          <th>Suppressed</th>
+          <th>Decision</th>
+        </tr>
+      </thead>
+
+      <tbody id="table"></tbody>
+
+    </table>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Decision Stream</h2>
+
+    <div class="log" id="log"></div>
+
+  </div>
+
+</section>
+
+<footer>
+  Public-safe visualization. Shows runtime behavior only.
+  Protected scoring logic, thresholds, adaptive policies,
+  and production internals are not exposed.
+</footer>
+
+<script>
+
+const rows = [
+
+  ["telemetry_0390","TRANSIENT",20,3,17,"EXECUTE"],
+  ["telemetry_0391","NORMAL",14,4,10,"EXECUTE"],
+  ["telemetry_0395","TRANSIENT",15,2,13,"EXECUTE"],
+  ["telemetry_0402","TRANSIENT",25,2,23,"EXECUTE"],
+  ["telemetry_0406","NORMAL",13,3,10,"EXECUTE"],
+  ["telemetry_0412","NORMAL",13,5,8,"EXECUTE"],
+  ["telemetry_0418","TRANSIENT",27,2,25,"EXECUTE"]
+
+];
+
+const table = document.getElementById("table");
+
+rows.forEach(r => {
+
+  const cls = r[1].toLowerCase();
+
+  table.innerHTML += `
+    <tr>
+      <td>${r[0]}</td>
+
+      <td>
+        <span class="pill ${cls}">
+          ${r[1]}
+        </span>
+      </td>
+
+      <td>${r[2]}</td>
+      <td>${r[3]}</td>
+      <td>${r[4]}</td>
+
+      <td class="execute">
+        ${r[5]}
+      </td>
+
+    </tr>
+  `;
+});
+
+const events = [
+
+  ["HOLD","trajectory observed"],
+  ["SKIP","change below admissibility boundary"],
+  ["SKIP","transient state suppressed"],
+  ["HOLD","meaningful trajectory update accepted"],
+  ["SKIP","minor transient drift suppressed"],
+  ["EXECUTE","stable trajectory committed"]
+
+];
+
+const log = document.getElementById("log");
+
+let i = 0;
+
+setInterval(() => {
+
+  const e = events[i % events.length];
+  const cls = e[0].toLowerCase();
+
+  const line = `
+    <div>
+      <span class="${cls}">
+        [${e[0]}]
+      </span>
+
+      ${e[1]}
+    </div>
+  `;
+
+  log.innerHTML = line + log.innerHTML;
+
+  i++;
+
+},700);
+
+</script>
+
+</body>
+</html>
